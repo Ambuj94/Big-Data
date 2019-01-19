@@ -1,0 +1,273 @@
+cat > prof1
+101,Ravi,30,btech#mtech#phd,hyd
+102,Rani,25,bs#msc#mtech,del
+
+cat prof1 
+101,Ravi,30,btech#mtech#phd,hyd
+102,Rani,25,bs#msc#mtech,del
+
+create database practice;
+use practice;
+
+
+create table profile1(id int,
+name string, age int,
+qual array<string>, city string)
+row format delimited
+fields terminated by ','
+collection items terminated by '#';
+
+
+load data local inpath 'prof1' into table profile1;
+
+select name, qual[0] from profile1;
+select name, size(qual) from profile1;
+
+select explode(qual) as q from profile1;
+
+create table qtab(qual string);
+insert into table qtab
+select explode(qual) as q from profile1;
+
+explode() --> it flattens array elements into different rows.
+
+select * from qtab;
+btech
+mtech
+phd
+bs
+msc
+mtech
+
+select qual ,count(*) from qtab
+group by qual;
+bs	1
+btech	1
+msc	1
+mtech	2
+phd	1
+
+create table res(q string, cnt int)
+row format delimited
+fields terminated by ',';
+insert into table res
+select qual, count(*) from qtab
+group by qual;
+
+select * from res;
+
+Hive has 3 type of functions:-
+1.)udf[user defined function]:- for each row one value will come.
+2.)udaf[user defined aggregated functions]:- for entire column or for entire group this function return single value.
+3.)udtf[user defined table generated functions]
+
+ex for udf:
+---------------------------
+substr(), length, size(), sqrt()......
+
+name
+----------------
+abc
+xyuz
+zb
+
+lenght(name)
+3
+4
+2
+
+ex for udaf
+------------------------------
+sum(), count(), avg(), max(), min()
+
+ex for udtf:
+------------------
+explode(), json_tuple(),parse_url_tuple().............
+
+
+cat > sales
+c101,10#20#100
+c102,100#50
+c103,300#500#800#100
+c101,600#400
+
+create table trans(cid string, price array<int>)
+row format delimited
+fields terminated by ','
+collection items terminated by '#';
+
+
+load data local inpath 'sales' into table trans;
+select * from trans;
+
+select explode(price) as pr from trans;
+
+select cid, explode(price) as pr from trans; 
+FAILED: SemanticException [Error 10081]: UDTF's are not supported outside the SELECT clause, nor nested in expressions
+
+select cid, mypr from trans
+lateral view explode(price) p as mypr;
+c101	10
+c101	20
+c101	100
+c102	100
+c102	50
+c103	300
+c103	500
+c103	800
+c103	100
+c101	600
+c101	400
+
+create table strans(cid string, price int)
+row format delimited
+fields terminated by ',';
+
+insert into table strans
+select cid, mypr from trans
+lateral view explode(price) p as mypr;
+
+select * from strans;
+
+select cid, sum(price) from strans
+group by cid;
+c101	1130
+c102	150
+c103	1700
+
+---------------------------------------------------------------------------------
+
+How to handle struct
+
+cat > prof2
+Ravi,30,Rani#25#del,hyd
+Raghu,35,Sailu#23#hyd,Del
+
+cat prof2
+
+Ravi,30,Rani#25#del,hyd
+Raghu,35,Sailu#23#hyd,Del
+
+create table profile2(name string,
+age int, wife struct<name:string, age:int, city:string> ,city string)
+row format delimited
+fields terminated by ','
+collection items terminated by '#';
+
+load data local inpath 'prof2' into table profile2;
+select * from profile2;
+
+select name, wife.name from profile2;
+
+create table couples(hname string, wname string,
+hage int, wage int, hcity string, wcity string)
+row format delimited
+fields terminated by '\t';
+
+insert into table couples
+select name, wife.name, age, wife.age, city, wife.city
+from profile2;
+
+select * from couples;
+
+
+cat prof3
+Ravi,30,btech$89#mtech$79#mba$60,hyd
+Raghu,35,bsc$80#msc$70,Del
+
+create table profile3(name string,age int,
+qual map<string,int>, city string)
+row format delimited
+fields terminated by ','
+collection items terminated by '#'
+map keys terminated by '$';
+
+load data local inpath 'prof3' into table profile3;
+
+select * from profile3;
+
+select name, qual['btech'] from profile3;
+
+select map_keys(qual) from profile3;
+
+select map_values(qual) from profile3;
+
+create table infos(name string, q array<string>, p array<int>)
+row format delimited
+fields terminated by ',';
+
+insert into table infos
+select name,map_keys(qual),map_values(qual) from profile3;
+
+select * from infos;
+select name, myq from infos
+lateral view explode(q) ql as myq;
+
+select name, myp from infos
+lateral view explode(p) pl as myp;
+
+select name,myq,myp from infos
+lateral view explode(q) ql as myq
+lateral view explode(p) pl as myp;
+(worng output)
+
+----------------------------------------------------------------------------------
+Day 2
+
+-------------------------------------------------------------------------
+create table ourtab(line string)
+location '/user/urdata';
+
+DATA TYPES
+-------------------------
+simple data types:
+
+
+string
+int
+long
+float
+double
+boolean
+data
+timestamp
+
+
+complex data types:
+(collections)
+Array
+Struct
+Map
+
+Array:
+      is a collection of homogeneous items
+
+ex:-   qual -----> ['btech','mtech','phd']
+       price -----> [23,50,60,80]
+
+Struct:
+       is a collection of hetrogeneous items
+
+ex:-  info ---> <ravi,25,hyd,btech>
+
+
+Map:
+    is a collection of key and value pair.
+
+ex:-qual ---> {Btech:2016,Mtech:2018,Phd:2019}
+
+
+default delimiter for hive table is '\001'(ctrl+A)
+
+--------------------------------------------------------------------------
+DAY 3
+
+
+---------------------------------------------------------------
+
+Type of Hive tables:-
+
+
+
+
+
