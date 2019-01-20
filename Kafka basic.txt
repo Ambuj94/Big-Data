@@ -1,0 +1,48 @@
+KAFKA
+
+---------------------------------------------------------
+
+Installation
+----------------
+
+Download Kafka from this link
+
+wget http://mirrors.fibergrid.in/apache/kafka/2.0.0/kafka_2.11-0.11.0.0.tgz
+
+
+Untar using this command
+
+tar -xvzf kafka_2.11-0.11.0.0.tgz
+
+Open a terminal and run zookeeper server
+
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+Open another terminal and run kafka server
+
+bin/kafka-server-start.sh config/server.properties
+
+Open another terminal and create topic
+
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic ambuj
+
+created topic "ambuj"
+
+bin/kafka-topics.sh --list --zookeeper localhost:2181 ambuj
+
+ambuj
+
+Start producer
+
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic ambuj
+hi
+i am ambuj
+
+Step 7: Open another terminal and start consumer
+
+>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic "ambuj" --from-beginning
+
+hi
+i am ambuj
+
+
