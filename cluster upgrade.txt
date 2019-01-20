@@ -1,0 +1,63 @@
+Upgrade hadoop 1.2.0 to hadoop 2.6.0
+
+------------------------------------------------------------------
+
+Step 1: You must have 1.2.0 running cluster.
+Step 2: Upgrade java8
+                     sudo apt-get update
+                     sudo add-apt-repository ppa:webupd8team/java
+                     sudo apt-get update
+
+Step 3: Check any upgrade is going on or not.
+                     hadoop dfsadmin -upgradeProgress status
+
+Step 4: Make backup for all data,file and logs of HDFS
+
+                     hadoop fsck / -files -blocks -locations > dfs-v-old-fsck-1.log
+                     hadoop dfs -lsr / > dfs-v-old-lsr-1.log
+
+Step 5:- Close your Cluster.
+                     stop-all.sh
+
+Step 6:- Download Hadoop 2.6.0 and untar
+
+Step 7:- Set .bashrc for new hadoop 
+
+Step 8:- Check new version is coming or not.
+
+Step 9:- Set all the configuration file.
+
+                  core-site.xml
+                  hdfs-site.xml
+                  mapred-site.xml
+                  yarn-site.xml
+                  hadoop-env.sh
+
+Step 10:- Now upgrade your namenode
+
+                  hadoop-daemon.sh start namenode -upgrade
+
+Step 11:- Check NameNode started or not
+   
+                 jps
+
+Step 12:- Start DataNode
+
+                  hadoop-daemon.sh start datanode
+
+Step 13:- Check all your previous data is there on HDFS or not
+         if  data is their then finalize the upgrade otherwise check your configuration and log file .
+
+
+
+Step 14:- Now finalize your upgrade
+                  
+                  hdfs dfsadmin -finalizeUpgrade
+
+Step 15:- Start other daemons
+
+
+
+
+
+ 
